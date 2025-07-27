@@ -1,0 +1,26 @@
+# Enhanced ML and Mobile Security Dependencies
+scikit-learn==1.5.2
+pandas==2.2.3
+numpy==1.26.4
+matplotlib==3.9.2
+seaborn==0.13.2
+
+# Mobile Security Testing
+frida==16.5.9
+androguard==4.1.2
+cryptography==43.0.3
+pyOpenSSL==24.2.1
+
+# Machine Learning for Fraud Detection
+imbalanced-learn==0.12.4
+xgboost==2.1.2
+lightgbm==4.5.0
+
+# Network Security Testing
+mitmproxy==10.4.2
+pyshark==0.6.0
+scapy==2.6.1
+
+# Binary Analysis
+yara-python==4.5.1
+pefile==2023.2.7

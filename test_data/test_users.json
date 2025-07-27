@@ -1,0 +1,97 @@
+{
+  "valid_users": [
+    {
+      "username": "testuser",
+      "password": "password123",
+      "email": "test@example.com",
+      "first_name": "Test",
+      "last_name": "User",
+      "verified": false,
+      "account_status": "active",
+      "role": "standard_user",
+      "description": "Standard unverified user for testing security restrictions"
+    },
+    {
+      "username": "verified_user",
+      "password": "password123",
+      "email": "verified@example.com",
+      "first_name": "Verified",
+      "last_name": "User",
+      "verified": true,
+      "account_status": "active",
+      "role": "verified_user",
+      "description": "Verified user for testing verified user permissions"
+    },
+    {
+      "username": "admin_user",
+      "password": "admin123",
+      "email": "admin@example.com",
+      "first_name": "Admin",
+      "last_name": "User",
+      "verified": true,
+      "account_status": "active",
+      "role": "admin",
+      "description": "Admin user for testing administrative functions"
+    },
+    {
+      "username": "locked_user",
+      "password": "password123",
+      "email": "locked@example.com",
+      "first_name": "Locked",
+      "last_name": "User",
+      "verified": false,
+      "account_status": "locked",
+      "role": "standard_user",
+      "description": "Locked user account for testing security scenarios"
+    }
+  ],
+  "invalid_users": [
+    {
+      "username": "nonexistent",
+      "password": "wrongpass",
+      "description": "Non-existent user for negative testing"
+    },
+    {
+      "username": "testuser",
+      "password": "wrongpassword",
+      "description": "Valid username with wrong password"
+    },
+    {
+      "username": "",
+      "password": "",
+      "description": "Empty credentials"
+    },
+    {
+      "username": "testuser",
+      "password": "",
+      "description": "Valid username with empty password"
+    }
+  ],
+  "malicious_users": [
+    {
+      "username": "admin'--",
+      "password": "password",
+      "description": "SQL injection attempt in username"
+    },
+    {
+      "username": "' OR '1'='1",
+      "password": "anything",
+      "description": "Classic SQL injection bypass attempt"
+    },
+    {
+      "username": "<script>alert('xss')</script>",
+      "password": "password",
+      "description": "XSS injection attempt in username"
+    },
+    {
+      "username": "testuser",
+      "password": "'; DROP TABLE users; --",
+      "description": "SQL injection attempt in password"
+    },
+    {
+      "username": "../../../etc/passwd",
+      "password": "password",
+      "description": "Path traversal attempt in username"
+    }
+  ]
+}

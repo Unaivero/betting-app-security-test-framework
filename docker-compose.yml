@@ -1,0 +1,209 @@
+version: '3.8'
+
+services:
+  # Mock Betting App Backend
+  betting-mock-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: betting-mock-server
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=true
+      - PORT=5000
+      - HOST=0.0.0.0
+    volumes:
+      - ./mock_server:/app/mock_server
+      - ./logs:/app/logs
+    networks:
+      - betting-test-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # Security Test Runner
+  security-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.tests
+    container_name: betting-security-tests
+    depends_on:
+      betting-mock-server:
+        condition: service_healthy
+    environment:
+      - MOCK_SERVER_URL=http://betting-mock-server:5000
+      - PYTHONPATH=/app
+      - TEST_ENVIRONMENT=docker
+      - USE_MOCK_DRIVER=true
+    volumes:
+      - ./tests:/app/tests
+      - ./pages:/app/pages
+      - ./test_data:/app/test_data
+      - ./reports:/app/reports
+      - ./logs:/app/logs
+      - .:/app
+    networks:
+      - betting-test-network
+    command: ["python", "-m", "pytest", "tests/", "-v", "--html=/app/reports/docker_report.html", "--self-contained-html"]
+    profiles:
+      - test
+
+  # Appium Server for Mobile Testing
+  appium-server:
+    image: appium/appium:latest
+    container_name: betting-appium-server
+    ports:
+      - "4723:4723"
+    environment:
+      - APPIUM_HOST=0.0.0.0
+      - APPIUM_PORT=4723
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb
+    privileged: true
+    networks:
+      - betting-test-network
+    profiles:
+      - mobile
+
+  # Android Emulator (for CI/CD)
+  android-emulator:
+    image: budtmo/docker-android:emulator_11.0
+    container_name: betting-android-emulator
+    ports:
+      - "6080:6080"  # Web interface
+      - "5554:5554"  # ADB port
+      - "5555:5555"  # ADB port
+    environment:
+      - EMULATOR_DEVICE=Samsung Galaxy S10
+      - WEB_VNC=true
+      - APPIUM=true
+    privileged: true
+    volumes:
+      - /dev/kvm:/dev/kvm
+    networks:
+      - betting-test-network
+    profiles:
+      - mobile
+
+  # Test Database (optional for advanced testing)
+  test-database:
+    image: postgres:13
+    container_name: betting-test-db
+    environment:
+      - POSTGRES_DB=betting_test
+      - POSTGRES_USER=test_user
+      - POSTGRES_PASSWORD=test_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - betting-test-network
+    profiles:
+      - database
+
+  # Redis for Session Management Testing
+  test-redis:
+    image: redis:6-alpine
+    container_name: betting-test-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass test_password
+    networks:
+      - betting-test-network
+    profiles:
+      - cache
+
+  # Load Testing with Locust
+  load-testing:
+    build:
+      context: .
+      dockerfile: Dockerfile.locust
+    container_name: betting-load-tests
+    depends_on:
+      betting-mock-server:
+        condition: service_healthy
+    ports:
+      - "8089:8089"
+    environment:
+      - LOCUST_HOST=http://betting-mock-server:5000
+      - LOCUST_USERS=100
+      - LOCUST_SPAWN_RATE=10
+      - LOCUST_RUN_TIME=300s
+    volumes:
+      - ./performance:/app/performance
+      - ./reports:/app/reports
+    networks:
+      - betting-test-network
+    profiles:
+      - performance
+
+  # Security Scanner
+  security-scanner:
+    image: owasp/zap2docker-stable:latest
+    container_name: betting-security-scanner
+    depends_on:
+      betting-mock-server:
+        condition: service_healthy
+    environment:
+      - ZAP_PROXY=8080
+    volumes:
+      - ./security_reports:/zap/wrk/reports
+    networks:
+      - betting-test-network
+    command: |
+      zap-baseline.py 
+      -t http://betting-mock-server:5000 
+      -r security_scan_report.html 
+      -w security_scan_report.md
+    profiles:
+      - security-scan
+
+  # Test Report Server
+  report-server:
+    image: nginx:alpine
+    container_name: betting-report-server
+    ports:
+      - "8080:80"
+    volumes:
+      - ./reports:/usr/share/nginx/html/reports
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - betting-test-network
+    profiles:
+      - reports
+
+networks:
+  betting-test-network:
+    driver: bridge
+    name: betting-test-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+# Additional compose files for different environments
+---
+# docker-compose.override.yml (for development)
+version: '3.8'
+
+services:
+  betting-mock-server:
+    environment:
+      - FLASK_DEBUG=true
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - .:/app
+    command: ["python", "mock_server/app.py"]
+
+  security-tests:
+    environment:
+      - LOG_LEVEL=DEBUG
+    command: ["tail", "-f", "/dev/null"]  # Keep container running for interactive testing

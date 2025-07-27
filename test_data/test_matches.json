@@ -1,0 +1,206 @@
+{
+  "available_matches": [
+    {
+      "id": 1,
+      "title": "Real Madrid vs Barcelona",
+      "sport": "football",
+      "league": "La Liga",
+      "date": "2024-12-15T20:00:00Z",
+      "status": "upcoming",
+      "odds": {
+        "home_win": 2.1,
+        "draw": 3.4,
+        "away_win": 2.8
+      },
+      "popular": true
+    },
+    {
+      "id": 2,
+      "title": "Manchester United vs Liverpool",
+      "sport": "football", 
+      "league": "Premier League",
+      "date": "2024-12-16T15:30:00Z",
+      "status": "upcoming",
+      "odds": {
+        "home_win": 2.5,
+        "draw": 3.1,
+        "away_win": 2.4
+      },
+      "popular": true
+    },
+    {
+      "id": 3,
+      "title": "Lakers vs Warriors",
+      "sport": "basketball",
+      "league": "NBA",
+      "date": "2024-12-17T21:00:00Z",
+      "status": "upcoming",
+      "odds": {
+        "home_win": 1.8,
+        "draw": null,
+        "away_win": 2.0
+      },
+      "popular": false
+    },
+    {
+      "id": 4,
+      "title": "Novak Djokovic vs Rafael Nadal",
+      "sport": "tennis",
+      "league": "ATP Masters",
+      "date": "2024-12-18T14:00:00Z",
+      "status": "upcoming",
+      "odds": {
+        "home_win": 1.6,
+        "draw": null,
+        "away_win": 2.3
+      },
+      "popular": true
+    },
+    {
+      "id": 5,
+      "title": "Test Match for Security Testing",
+      "sport": "football",
+      "league": "Test League",
+      "date": "2024-12-20T18:00:00Z",
+      "status": "upcoming",
+      "odds": {
+        "home_win": 2.0,
+        "draw": 3.0,
+        "away_win": 2.0
+      },
+      "popular": false,
+      "test_match": true
+    }
+  ],
+  "invalid_matches": [
+    {
+      "id": -1,
+      "description": "Negative match ID"
+    },
+    {
+      "id": 999999,
+      "description": "Non-existent match ID"
+    },
+    {
+      "id": "admin",
+      "description": "String match ID"
+    },
+    {
+      "id": null,
+      "description": "Null match ID"
+    },
+    {
+      "id": "'; DROP TABLE matches; --",
+      "description": "SQL injection in match ID"
+    }
+  ],
+  "bet_types": {
+    "football": [
+      "home_win",
+      "draw", 
+      "away_win",
+      "over_2.5_goals",
+      "under_2.5_goals",
+      "both_teams_score",
+      "correct_score",
+      "first_goal_scorer"
+    ],
+    "basketball": [
+      "home_win",
+      "away_win",
+      "point_spread",
+      "over_under_points",
+      "first_quarter_winner",
+      "highest_scoring_quarter"
+    ],
+    "tennis": [
+      "match_winner",
+      "set_betting",
+      "game_handicap",
+      "total_games",
+      "first_set_winner"
+    ]
+  },
+  "fraud_test_scenarios": [
+    {
+      "name": "rapid_betting_same_match",
+      "description": "Multiple rapid bets on same match",
+      "match_id": 1,
+      "bets": [
+        {"bet_type": "home_win", "amount": 100, "delay": 0.1},
+        {"bet_type": "draw", "amount": 150, "delay": 0.1},
+        {"bet_type": "away_win", "amount": 200, "delay": 0.1},
+        {"bet_type": "home_win", "amount": 300, "delay": 0.1}
+      ],
+      "expected_detection": "rapid_betting"
+    },
+    {
+      "name": "odds_manipulation_attempt",
+      "description": "Betting with manipulated odds values",
+      "match_id": 2,
+      "bets": [
+        {"bet_type": "home_win", "amount": 100, "odds": 100.0, "description": "Manipulated high odds"},
+        {"bet_type": "draw", "amount": 100, "odds": -1.0, "description": "Negative odds"},
+        {"bet_type": "away_win", "amount": 100, "odds": 0, "description": "Zero odds"}
+      ],
+      "expected_detection": "odds_manipulation"
+    },
+    {
+      "name": "match_fixing_pattern",
+      "description": "Suspicious betting pattern indicating potential match fixing",
+      "bets": [
+        {"match_id": 1, "bet_type": "correct_score", "amount": 5000, "odds": 25.0},
+        {"match_id": 1, "bet_type": "first_goal_scorer", "amount": 3000, "odds": 15.0},
+        {"match_id": 1, "bet_type": "exact_time_goal", "amount": 2000, "odds": 50.0}
+      ],
+      "expected_detection": "match_fixing_indicators"
+    },
+    {
+      "name": "arbitrage_attempt",
+      "description": "Attempting arbitrage betting across matches",
+      "bets": [
+        {"match_id": 1, "bet_type": "home_win", "amount": 1000, "odds": 2.1},
+        {"match_id": 1, "bet_type": "away_win", "amount": 950, "odds": 2.8},
+        {"match_id": 2, "bet_type": "home_win", "amount": 800, "odds": 2.5},
+        {"match_id": 2, "bet_type": "away_win", "amount": 750, "odds": 2.4}
+      ],
+      "expected_detection": "arbitrage_pattern"
+    }
+  ],
+  "edge_cases": [
+    {
+      "name": "bet_on_expired_match",
+      "match_id": 999,
+      "date": "2023-01-01T00:00:00Z",
+      "status": "finished",
+      "description": "Attempting to bet on finished match"
+    },
+    {
+      "name": "bet_on_cancelled_match", 
+      "match_id": 998,
+      "status": "cancelled",
+      "description": "Attempting to bet on cancelled match"
+    },
+    {
+      "name": "bet_on_suspended_match",
+      "match_id": 997,
+      "status": "suspended", 
+      "description": "Attempting to bet on suspended match"
+    }
+  ],
+  "performance_test_data": {
+    "concurrent_betting": {
+      "match_id": 1,
+      "concurrent_users": 50,
+      "bets_per_user": 10,
+      "bet_amount_range": [10, 500],
+      "duration_seconds": 60
+    },
+    "load_testing": {
+      "total_bets": 1000,
+      "matches_involved": [1, 2, 3, 4, 5],
+      "user_count": 100,
+      "ramp_up_time": 30
+    }
+  }
+}

