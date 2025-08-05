@@ -442,7 +442,7 @@ jobs:
     - name: Run security tests
       run: ./run_tests.sh -s security
     - name: Upload reports
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: test-reports
         path: reports/

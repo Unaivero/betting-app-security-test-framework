@@ -48,7 +48,7 @@ jobs:
       uses: actions/checkout@v4
       
     - name: 🐍 Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
@@ -150,7 +150,7 @@ jobs:
         fi
         
     - name: 📤 Upload Test Reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: security-test-reports-${{ matrix.test-category }}-py${{ matrix.python-version }}
@@ -161,7 +161,7 @@ jobs:
         retention-days: 30
         
     - name: 📤 Upload Security Scans
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: security-scans-${{ matrix.test-category }}-py${{ matrix.python-version }}
@@ -197,7 +197,7 @@ jobs:
         output: 'trivy-results.sarif'
         
     - name: 📤 Upload Trivy Results to GitHub Security
-      uses: github/codeql-action/upload-sarif@v2
+      uses: github/codeql-action/upload-sarif@v3
       if: always()
       with:
         sarif_file: 'trivy-results.sarif'
@@ -258,7 +258,7 @@ jobs:
       uses: actions/checkout@v4
       
     - name: 🐍 Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10'
         cache: 'pip'
@@ -284,6 +284,16 @@ jobs:
         else
           echo "ℹ️ Performance report not available" >> $GITHUB_STEP_SUMMARY
         fi
+        
+    - name: 📤 Upload Performance Test Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: performance-test-reports
+        path: |
+          reports/
+          logs/
+        retention-days: 30
 
   notification:
     name: 📢 Security Test Notification
