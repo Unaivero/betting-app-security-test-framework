@@ -128,7 +128,18 @@ install_dependencies() {
     print_status "Installing Python dependencies..."
     
     if [ -f "requirements.txt" ]; then
-        pip install -r requirements.txt
+        # Try python -m pip first, fallback to pip
+        if command -v python >/dev/null 2>&1; then
+            python -m pip install -r requirements.txt
+            # Also ensure pytest-html is installed for HTML reports
+            python -m pip install pytest-html
+        elif command -v pip >/dev/null 2>&1; then
+            pip install -r requirements.txt
+            pip install pytest-html
+        else
+            print_error "Neither python nor pip command found"
+            return 1
+        fi
         print_success "Dependencies installed"
     else
         print_error "requirements.txt not found"
@@ -142,9 +153,22 @@ run_tests() {
     
     print_status "Running $test_type tests..."
     
+    # Check if pytest is available
+    if ! command -v pytest >/dev/null 2>&1; then
+        if command -v python >/dev/null 2>&1; then
+            # Try using python -m pytest
+            PYTEST_CMD="python -m pytest"
+        else
+            print_error "Neither pytest nor python command found"
+            return 1
+        fi
+    else
+        PYTEST_CMD="pytest"
+    fi
+    
     case $test_type in
         "security")
-            pytest tests/test_bet_limits_security.py tests/test_profile_security.py tests/test_fraud_detection.py \
+            $PYTEST_CMD tests/test_bet_limits_security.py tests/test_profile_security.py tests/test_fraud_detection.py \
                 -v -m security \
                 --html=$REPORT_DIR/security_report.html \
                 --self-contained-html \
@@ -154,7 +178,7 @@ run_tests() {
             }
             ;;
         "mobile")
-            pytest tests/test_mobile_ui_security.py tests/test_advanced_mobile_security.py \
+            $PYTEST_CMD tests/test_mobile_ui_security.py tests/test_advanced_mobile_security.py \
                 -v -m "mobile_security or integration" \
                 --html=$REPORT_DIR/mobile_report.html \
                 --self-contained-html \
@@ -164,7 +188,7 @@ run_tests() {
             }
             ;;
         "api")
-            pytest tests/test_bet_limits_security.py tests/test_profile_security.py \
+            $PYTEST_CMD tests/test_bet_limits_security.py tests/test_profile_security.py \
                 -v \
                 --html=$REPORT_DIR/api_report.html \
                 --self-contained-html \
@@ -174,7 +198,7 @@ run_tests() {
             }
             ;;
         "fraud")
-            pytest tests/test_fraud_detection.py tests/test_ml_fraud_detection.py \
+            $PYTEST_CMD tests/test_fraud_detection.py tests/test_ml_fraud_detection.py \
                 -v -m "fraud_detection or ml_analysis" \
                 --html=$REPORT_DIR/fraud_report.html \
                 --self-contained-html \
@@ -186,7 +210,7 @@ run_tests() {
         "performance")
             # Performance security tests - check for performance test files
             if [ -f "tests/test_performance_security.py" ]; then
-                pytest tests/test_performance_security.py \
+                $PYTEST_CMD tests/test_performance_security.py \
                     -v -m "performance or load_test" \
                     --html=$REPORT_DIR/performance_report.html \
                     --self-contained-html \
@@ -202,7 +226,7 @@ run_tests() {
             fi
             ;;
         "all")
-            pytest tests/ \
+            $PYTEST_CMD tests/ \
                 -v \
                 --html=$REPORT_DIR/full_report.html \
                 --self-contained-html \

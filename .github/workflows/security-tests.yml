@@ -70,14 +70,23 @@ jobs:
         cd mock_server && python app.py &
         SERVER_PID=$!
         
-        # Wait for server to be ready
-        for i in {1..30}; do
-          if curl -s http://localhost:5000/health | grep -q "healthy"; then
-            echo "✅ Mock server is ready"
+        # Wait for server to be ready with better error handling
+        echo "Waiting for mock server to start..."
+        for i in {1..60}; do
+          if curl -s -f http://localhost:5000/health | grep -q "healthy"; then
+            echo "✅ Mock server is ready (attempt $i)"
             break
           fi
-          sleep 1
+          echo "Waiting for mock server... attempt $i"
+          sleep 2
         done
+        
+        # Verify server is actually running
+        if ! curl -s -f http://localhost:5000/health | grep -q "healthy"; then
+          echo "❌ Mock server failed to start properly"
+          ps aux | grep app.py || true
+          exit 1
+        fi
         
         # Keep server running for tests
         echo "SERVER_PID=$SERVER_PID" >> $GITHUB_ENV
@@ -87,30 +96,32 @@ jobs:
         PYTHONPATH: .
         TEST_ENVIRONMENT: ci
         MOCK_SERVER_URL: http://localhost:5000
+        USE_MOCK_DRIVER: true
+        HEADLESS: true
       run: |
         # Ensure reports directory exists
         mkdir -p reports logs screenshots
         
         case "${{ matrix.test-category }}" in
           "security")
-            ./run_tests.sh --install --clean security
+            ./run_tests.sh --clean --skip-server security
             ;;
           "fraud")
-            ./run_tests.sh --install --clean fraud
+            ./run_tests.sh --clean --skip-server fraud
             ;;
           "api")
-            ./run_tests.sh --install --clean api
+            ./run_tests.sh --clean --skip-server api
             ;;
           "performance")
-            ./run_tests.sh --install --clean performance
+            ./run_tests.sh --clean --skip-server performance
             ;;
           "mobile")
             # Mobile tests with mock driver (no emulator in CI)
             export USE_MOCK_DRIVER=true
-            ./run_tests.sh --install --clean mobile
+            ./run_tests.sh --clean --skip-server mobile
             ;;
           *)
-            ./run_tests.sh --install --clean all
+            ./run_tests.sh --clean --skip-server all
             ;;
         esac
         
