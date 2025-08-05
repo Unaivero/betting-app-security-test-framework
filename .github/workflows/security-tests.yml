@@ -88,37 +88,42 @@ jobs:
         TEST_ENVIRONMENT: ci
         MOCK_SERVER_URL: http://localhost:5000
       run: |
+        # Ensure reports directory exists
+        mkdir -p reports logs screenshots
+        
         case "${{ matrix.test-category }}" in
           "security")
-            ./run_tests.sh -s security
+            ./run_tests.sh --install --clean security
             ;;
           "fraud")
-            ./run_tests.sh -s fraud
+            ./run_tests.sh --install --clean fraud
             ;;
           "api")
-            ./run_tests.sh -s api
+            ./run_tests.sh --install --clean api
             ;;
           "performance")
-            ./run_tests.sh -s performance
+            ./run_tests.sh --install --clean performance
             ;;
           "mobile")
             # Mobile tests with mock driver (no emulator in CI)
             export USE_MOCK_DRIVER=true
-            ./run_tests.sh -s mobile
+            ./run_tests.sh --install --clean mobile
             ;;
           *)
-            ./run_tests.sh -s all
+            ./run_tests.sh --install --clean all
             ;;
         esac
         
     - name: 🔍 Security Scan - Bandit
       run: |
+        mkdir -p reports
         pip install bandit[toml]
         bandit -r . -f json -o reports/bandit-security-scan.json || true
         bandit -r . -f txt -o reports/bandit-security-scan.txt || true
         
     - name: 🔍 Security Scan - Safety
       run: |
+        mkdir -p reports
         pip install safety
         safety check --json --output reports/safety-scan.json || true
         safety check --output reports/safety-scan.txt || true
